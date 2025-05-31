@@ -38,10 +38,7 @@ export const signInWithGoogle = async () => {
     // `data.url` is the URL to redirect the user to Google's sign-in page.
     // The browser will automatically navigate there.
     // Typically, you don't need to do anything with 'data' here as the redirect happens.
-    console.log(
-      'Supabase signInWithOAuth initiated. Redirecting to Google via:',
-      data?.url
-    );
+    console.log('Supabase signInWithOAuth initiated. Redirecting to Google via:', data?.url);
     return data;
   } catch (error) {
     // This catches synchronous errors within this function or re-thrown errors
@@ -65,16 +62,10 @@ export const signOut = async () => {
 
 export const getCurrentUser = async () => {
   try {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
+    const { data: { user }, error } = await supabase.auth.getUser();
     if (error) {
       // Don't throw for "no user" as it's a valid state, but log for unexpected errors.
-      console.warn(
-        'Supabase getUser error (might be expected if not logged in):',
-        error.message
-      );
+      console.warn('Supabase getUser error (might be expected if not logged in):', error.message);
       return null;
     }
     return user;
@@ -94,22 +85,17 @@ export const getUserProfile = async (userId: string) => {
     // Ensure your table is 'user_profiles' and the select statement is correct for your schema.
     // The nested select for achievements needs to be accurate.
     const { data, error } = await supabase
-      .from('user_profiles')
-      .select(
-        `
+        .from('user_profiles')
+        .select(`
         *,
         user_achievements_progress(*, achievements(name, description, points)) 
-      `
-      ) // Adjust this select based on your actual schema and desired fields
-      .eq('id', userId)
-      .single();
+      `) // Adjust this select based on your actual schema and desired fields
+        .eq('id', userId)
+        .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        // Standard code for "No rows found"
-        console.warn(
-          `Profile not found for user ID: ${userId}. This might be expected.`
-        );
+      if (error.code === 'PGRST116') { // Standard code for "No rows found"
+        console.warn(`Profile not found for user ID: ${userId}. This might be expected.`);
         return null; // Return null if profile not found, it's not necessarily an "error"
       }
       console.error('Error fetching user profile:', error.message);

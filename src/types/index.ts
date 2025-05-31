@@ -1,16 +1,16 @@
 // src/types/index.ts
 
-// --- Core Cipher and Puzzle Types (from your existing file, looks good) ---
+// --- Core Cipher and Puzzle Types ---
 export type CipherType =
-  | 'caesar'
-  | 'atbash'
-  | 'substitution'
-  | 'transposition'
-  | 'anagram'
-  | 'mirror'
-  | 'riddle'
-  | 'binary'
-  | 'morse';
+    | 'caesar'
+    | 'atbash'
+    | 'substitution'
+    | 'transposition'
+    | 'anagram'
+    | 'mirror'
+    | 'riddle'
+    | 'binary'
+    | 'morse';
 
 export interface CipherInfo {
   name: string;
@@ -18,42 +18,15 @@ export interface CipherInfo {
 }
 
 export const cipherInfo: Record<CipherType, CipherInfo> = {
-  caesar: {
-    name: 'Caesar Cipher',
-    description: 'Shifts letters by a fixed number.',
-  },
-  atbash: {
-    name: 'Atbash Cipher',
-    description: 'Reverses the alphabet (A=Z, B=Y).',
-  },
-  substitution: {
-    name: 'Simple Substitution',
-    description: 'Each letter is replaced by another.',
-  },
-  transposition: {
-    name: 'Transposition Cipher',
-    description: 'Letters are rearranged.',
-  },
-  anagram: {
-    name: 'Anagram',
-    description: 'Rearrange letters to form new words/phrases.',
-  },
-  mirror: {
-    name: 'Mirror Writing',
-    description: 'Text is reversed, like in a mirror.',
-  },
-  riddle: {
-    name: 'Riddle',
-    description: 'A question or statement phrased puzzlingly.',
-  },
-  binary: {
-    name: 'Binary Code',
-    description: 'Text encoded as sequences of 0s and 1s.',
-  },
-  morse: {
-    name: 'Morse Code',
-    description: 'Text encoded as dots and dashes.',
-  },
+  caesar: { name: "Caesar Cipher", description: "Shifts letters by a fixed number." },
+  atbash: { name: "Atbash Cipher", description: "Reverses the alphabet (A=Z, B=Y)." },
+  substitution: { name: "Simple Substitution", description: "Each letter is replaced by another." },
+  transposition: { name: "Transposition Cipher", description: "Letters are rearranged." },
+  anagram: { name: "Anagram", description: "Rearrange letters to form new words/phrases." },
+  mirror: { name: "Mirror Writing", description: "Text is reversed, like in a mirror." },
+  riddle: { name: "Riddle", description: "A question or statement phrased puzzlingly." },
+  binary: { name: "Binary Code", description: "Text encoded as sequences of 0s and 1s." },
+  morse: { name: "Morse Code", description: "Text encoded as dots and dashes." },
 };
 
 export interface CipherExample {
@@ -78,24 +51,24 @@ export type CipherConfig = {
   riddle_question?: string;
 };
 
-// --- Hunt, Story Node, and Puzzle Types (for the new interactive system) ---
+// --- Hunt, Story Node, and Puzzle Types ---
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 
 export interface Puzzle {
-  id: string; // DB generated UUID
+  id: string;
+  hunt_id?: string;
+  sequence?: number;  // Add sequence field
   title?: string;
-  description?: string | null; // Narrative context for the puzzle clue
+  description?: string | null;
   clue_text: string;
+  solution: string;
   cipher_type: CipherType;
   cipher_config?: CipherConfig | null;
-  solution: string;
   points: number;
-  hints?: { hint1?: string; hint2?: string; [key: string]: any } | null; // Allow for hint costs if added later
+  hints?: { hint1?: string; hint2?: string; cost1?: number; cost2?: number; [key: string]: any } | null;
+  difficulty?: Difficulty | null;
   creator_id?: string | null;
   created_at: string;
-  // 'post_solve_story_node_id' was removed from Puzzle as this link is typically handled
-  // by the 'success_node_id' in a 'puzzle_interaction' StoryNode's content.
-  // If you need it directly on Puzzle, add it back.
 }
 
 interface NarrativeContent {
@@ -123,7 +96,7 @@ interface VisualCueContent {
 }
 
 interface PuzzleInteractionContent {
-  puzzle_id: string; // This will hold the DB UUID of the puzzle
+  puzzle_id: string;
   prompt_text?: string;
   success_node_id: string;
   failure_node_id?: string | null;
@@ -141,7 +114,6 @@ interface ActionTriggerContent {
 }
 
 interface StoryUpdateContent {
-  // New content type for 'story_update'
   text: string;
   next_node_id?: string;
 }
@@ -151,41 +123,37 @@ interface HuntEndContent {
   outcome: 'success' | 'failure' | 'neutral';
 }
 
-// Union type for StoryNode content
 export type StoryNodeContent =
-  | NarrativeContent
-  | DialogueMessageContent
-  | VisualCueContent
-  | PuzzleInteractionContent
-  | PlayerChoiceContent
-  | ActionTriggerContent
-  | StoryUpdateContent // Added
-  | HuntEndContent
-  | { [key: string]: any }; // Fallback
+    | NarrativeContent
+    | DialogueMessageContent
+    | VisualCueContent
+    | PuzzleInteractionContent
+    | PlayerChoiceContent
+    | ActionTriggerContent
+    | StoryUpdateContent
+    | HuntEndContent
+    | { [key: string]: any };
 
 export interface StoryNode {
   id: string;
   hunt_id: string;
-  // Use the chosen consistent set of node_type values
   node_type:
-    | 'narrative_block'
-    | 'dialogue_message'
-    | 'visual_cue'
-    | 'puzzle_interaction'
-    | 'player_choice'
-    | 'story_update' // Added
-    | 'action_trigger' // Added
-    | 'end_hunt';
+      | 'narrative_block'
+      | 'dialogue_message'
+      | 'visual_cue'
+      | 'puzzle_interaction'
+      | 'player_choice'
+      | 'story_update'
+      | 'action_trigger'
+      | 'end_hunt';
   content: StoryNodeContent;
   display_order: number;
   is_starting_node: boolean;
   created_at: string;
   story_node_choices?: HuntChoice[];
-
-  // Fields from your DB table that were not in previous type definition
-  narrative_style?: string | null; // Added from your DB schema
-  emotional_context?: Record<string, any> | null; // Added from your DB schema (JSONB)
-  required_inventory_items?: string[] | Record<string, any> | null; // Added from your DB schema (JSONB - could be array or object)
+  narrative_style?: string | null;
+  emotional_context?: Record<string, any> | null;
+  required_inventory_items?: string[] | Record<string, any> | null;
 }
 
 export interface HuntChoice {
@@ -202,32 +170,24 @@ export interface HuntChoice {
 export interface TreasureHunt {
   id: string;
   title: string;
-  description?: string | null; // Short public teaser
+  description?: string | null;
   cover_image_url?: string | null;
-  story_context?: string | null; // <<< CHANGED from story_prologue to match your DB table
-  creator_id: string; // FK to user_profiles (or auth.users.id if profiles are separate)
+  story_context?: string | null;
+  creator_id: string;
   is_public: boolean;
-  difficulty?: Difficulty | null; // Allow null if not set
+  difficulty?: Difficulty | null;
   estimated_time_minutes?: number | null;
   tags?: string[] | null;
-  average_rating?: number;
-  total_ratings?: number;
-  completions_count?: number;
-  puzzles_count?: number; // Denormalized count of puzzles
   created_at: string;
-  updated_at?: string | null; // Optional, but good to have
-  creator?: {
-    // Joined data from user_profiles
-    display_name?: string | null;
-    avatar_url?: string | null;
-  };
-  story_nodes?: Partial<StoryNode>[]; // Optional: if fetching some node info with the hunt
-  starting_node_id?: string; // Helper field, often derived on the client or via a DB view/function
+  updated_at?: string | null;
+  starting_node_id?: string | null;
+  puzzles_count?: number;
+  creator?: { display_name?: string | null; avatar_url?: string | null };
 }
 
 // --- User Progress & Profile Types ---
 export interface UserProfile {
-  id: string; // Links to auth.users.id
+  id: string;
   display_name: string | null;
   bio: string | null;
   avatar_url: string | null;
@@ -248,7 +208,7 @@ export interface UserHuntProgress {
   hunt_id: string;
   current_story_node_id: string | null;
   completed_puzzle_ids: string[];
-  story_state: Record<string, any>; // JSONB for player choices, items, flags, revealed hints, etc.
+  story_state: Record<string, any>;
   score: number;
   status: 'started' | 'in_progress' | 'completed' | 'abandoned';
   started_at: string;
@@ -272,7 +232,7 @@ export interface Achievement {
   id: string;
   title: string;
   description: string;
-  icon_name: string; // e.g., lucide-react icon name string
+  icon_name: string;
   criteria: Record<string, any>;
   points_reward?: number;
   created_at: string;
@@ -288,7 +248,7 @@ export interface UserAchievement {
 export interface UserDashboardSettings {
   id: string;
   user_id: string;
-  layout_config: any; // Consider a more specific type
+  layout_config: any;
   theme_preference: string;
   widget_visibility: Record<string, boolean>;
   notifications_enabled: boolean;

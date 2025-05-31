@@ -11,9 +11,9 @@ const DashboardPage: React.FC = () => {
   if (authLoading) {
     // Consistent loading state display
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader message="Authenticating..." />
-      </div>
+        <div className="flex justify-center items-center h-screen">
+          <Loader message="Authenticating..." />
+        </div>
     );
   }
 

@@ -16,21 +16,21 @@ const getCharFrequency = (text: string): Record<string, number> => {
 const isValidAnagramPhrase = (original: string, phrase: string): boolean => {
   const originalFreq = getCharFrequency(original);
   const phraseFreq = getCharFrequency(phrase);
-  
+
   // Check if all letters in phrase can be formed from original
   for (const char in phraseFreq) {
     if (!originalFreq[char] || phraseFreq[char] > originalFreq[char]) {
       return false;
     }
   }
-  
+
   // Check if all letters from original are used in phrase
   for (const char in originalFreq) {
     if (!phraseFreq[char] || phraseFreq[char] < originalFreq[char]) {
       return false;
     }
   }
-  
+
   return true;
 };
 
@@ -40,7 +40,7 @@ const isValidAnagramPhrase = (original: string, phrase: string): boolean => {
 export const createAnagram = (text: string): string => {
   // Remove non-alphabetic characters and convert to lowercase
   const cleanText = text.toLowerCase().replace(/[^a-z]/g, '');
-  
+
   // For demonstration, we'll use a map of pre-defined anagrams for common phrases
   // In a real application, this could be expanded with a larger database or algorithm
   const anagramMap: Record<string, string[]> = {
@@ -62,7 +62,7 @@ export const createAnagram = (text: string): string => {
     'punishment': ['nine thumps', 'mint punish'],
     'funeral': ['real fun', 'run leaf']
   };
-  
+
   // If we have a pre-defined anagram, use it
   const cleanKey = cleanText.replace(/\s+/g, '');
   for (const [key, values] of Object.entries(anagramMap)) {
@@ -71,7 +71,7 @@ export const createAnagram = (text: string): string => {
       return values[Math.floor(Math.random() * values.length)];
     }
   }
-  
+
   // If no pre-defined anagram exists, create a simple scrambled version
   // This is a fallback - in a real application, you'd want a more sophisticated
   // algorithm for generating meaningful phrases
@@ -80,7 +80,7 @@ export const createAnagram = (text: string): string => {
     const j = Math.floor(Math.random() * (i + 1));
     [chars[i], chars[j]] = [chars[j], chars[i]];
   }
-  
+
   // Insert spaces randomly to create word-like groups
   let result = chars.join('');
   const wordCount = 2 + Math.floor(Math.random() * 2); // 2-3 words
@@ -89,10 +89,10 @@ export const createAnagram = (text: string): string => {
     const pos = 1 + Math.floor(Math.random() * (result.length - 2));
     positions.add(pos);
   }
-  
-  return Array.from(result).reduce((acc, char, i) => 
-    acc + char + (positions.has(i) ? ' ' : ''), 
-  '');
+
+  return Array.from(result).reduce((acc, char, i) =>
+          acc + char + (positions.has(i) ? ' ' : ''),
+      '');
 };
 
 /**
@@ -103,20 +103,20 @@ export const verifyAnagram = (original: string, solution: string): boolean => {
   if (!isValidAnagramPhrase(original, solution)) {
     return false;
   }
-  
+
   // Additional checks for quality (optional)
   const words = solution.trim().split(/\s+/);
-  
+
   // Ensure multiple words
   if (words.length < 2) {
     return false;
   }
-  
+
   // Ensure each word is at least 2 characters (except for common words)
   const commonWords = new Set(['a', 'i', 'o']);
   if (words.some(word => word.length < 2 && !commonWords.has(word.toLowerCase()))) {
     return false;
   }
-  
+
   return true;
 };

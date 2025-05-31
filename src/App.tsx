@@ -1,13 +1,14 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
-import HomePage from './pages/HomePage';
-import CreateHuntPage from './pages/CreateHuntPage';
-import SolveHuntPage from './pages/SolveHuntPage';
-import LibraryPage from './pages/LibraryPage';
-import DashboardPage from './pages/DashboardPage';
-import AuthCallback from './pages/AuthCallback';
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
+import HomePage from "./pages/HomePage";
+import CreateHuntPage from "./pages/CreateHuntPage";
+import SolveHuntPage from "./pages/SolveHuntPage";
+import LibraryPage from "./pages/LibraryPage";
+import DashboardPage from "./pages/DashboardPage";
+import AuthCallback from "./pages/AuthCallback";
+import HuntPlayerPage from './pages/HuntPlayerPage';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
               <Route path="/library" element={<LibraryPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/play/:huntId" element={<HuntPlayerPage />} />
             </Routes>
           </div>
         </main>

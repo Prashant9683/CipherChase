@@ -1,5 +1,5 @@
 // src/components/ui/Card.tsx
-import React from 'react';
+import React from "react";
 
 interface CardProps {
   children: React.ReactNode;
@@ -10,15 +10,15 @@ interface CardProps {
 
 const Card: React.FC<CardProps> = ({
   children,
-  className = '',
+  className = "",
   hoverEffect = false, // Default to false
   onClick,
 }) => {
-  const baseClasses = 'bg-white rounded-lg shadow-md overflow-hidden';
+  const baseClasses = "bg-white rounded-lg shadow-md overflow-hidden";
   const hoverClasses = hoverEffect
-    ? 'hover:shadow-lg transition-shadow duration-300'
-    : '';
-  const cursorClasses = onClick ? 'cursor-pointer' : '';
+    ? "hover:shadow-lg transition-shadow duration-300"
+    : "";
+  const cursorClasses = onClick ? "cursor-pointer" : "";
 
   return (
     <div
@@ -34,10 +34,10 @@ const Card: React.FC<CardProps> = ({
 export const CardHeader: React.FC<{
   children: React.ReactNode;
   className?: string;
-}> = ({ children, className = '' }) => {
+}> = ({ children, className = "" }) => {
   return (
     <div className={`p-4 md:p-6 border-b ${className}`}>
-      {' '}
+      {" "}
       {/* Added some default padding and border */}
       {children}
     </div>
@@ -48,10 +48,10 @@ export const CardHeader: React.FC<{
 export const CardContent: React.FC<{
   children: React.ReactNode;
   className?: string;
-}> = ({ children, className = '' }) => {
+}> = ({ children, className = "" }) => {
   return (
     <div className={`p-4 md:p-6 ${className}`}>
-      {' '}
+      {" "}
       {/* Added some default padding */}
       {children}
     </div>
@@ -62,10 +62,10 @@ export const CardContent: React.FC<{
 export const CardFooter: React.FC<{
   children: React.ReactNode;
   className?: string;
-}> = ({ children, className = '' }) => {
+}> = ({ children, className = "" }) => {
   return (
     <div className={`p-4 md:p-6 border-t ${className}`}>
-      {' '}
+      {" "}
       {/* Added some default padding and border */}
       {children}
     </div>
@@ -76,8 +76,8 @@ export const CardFooter: React.FC<{
 export const CardTitle: React.FC<{
   children: React.ReactNode;
   className?: string;
-  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'div'; // Allow specifying the HTML tag
-}> = ({ children, className = '', as: Component = 'h3' }) => {
+  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "div"; // Allow specifying the HTML tag
+}> = ({ children, className = "", as: Component = "h3" }) => {
   // Default to h3
   return (
     <Component className={`text-lg font-semibold tracking-tight ${className}`}>
@@ -90,8 +90,8 @@ export const CardTitle: React.FC<{
 export const CardDescription: React.FC<{
   children: React.ReactNode;
   className?: string;
-  as?: 'p' | 'div'; // Allow specifying the HTML tag
-}> = ({ children, className = '', as: Component = 'p' }) => {
+  as?: "p" | "div"; // Allow specifying the HTML tag
+}> = ({ children, className = "", as: Component = "p" }) => {
   // Default to p
   return (
     <Component className={`text-sm text-gray-500 ${className}`}>

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from '../ui/Link';
+import React from "react";
+import { Link } from "../ui/Link";
 
 const Footer: React.FC = () => {
   return (

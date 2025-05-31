@@ -1,283 +1,194 @@
 // src/pages/SolveHuntPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { TreasureHunt, Puzzle as PuzzleType } from '../types';
-import Card, {
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import HuntSolver from '../components/hunt/HuntSolver';
+import { TreasureHunt } from '../types';
+import Card, { CardContent, CardHeader, CardTitle, CardFooter } from '../components/ui/Card'; // Your Card from src/ui/Card
+import Button from '../components/ui/Button'; // Your Button from src/ui/Button
 import {
-  Compass,
-  Puzzle,
-  CalendarDays,
-  User,
-  AlertTriangle,
-  ArrowLeft,
-  SearchSlash,
-  Feather,
-  LockKeyhole,
-  BookOpen,
-  Edit,
-} from 'lucide-react';
-import { fetchHunts } from '../lib/supabase';
-import Loader from '../components/ui/Loader';
-import ExpandableText from '../components/ui/ExpandableText'; // Import the new component
+    Compass, Puzzle as PuzzleIcon, CalendarDays, User as UserIcon,
+    AlertTriangle, Edit, PlayCircle, SearchSlash, Feather, LockKeyhole // Added Feather from reference
+} from 'lucide-react'; // Renamed Puzzle to PuzzleIcon to avoid conflict with variable name
+import { fetchPublicHuntsForListing } from '../services/huntService';
+import Loader from '../components/ui/Loader'; // Your Loader from src/ui/Loader
+import ExpandableText from '../components/ui/ExpandableText'; // Your ExpandableText from src/ui/ExpandableText
 
 const SolveHuntPage: React.FC = () => {
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
-  const [selectedHunt, setSelectedHunt] = useState<TreasureHunt | null>(null);
-  const [hunts, setHunts] = useState<TreasureHunt[]>([]);
-  const [isLoadingHunts, setIsLoadingHunts] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+    const { user, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
 
-  const loadHuntsData = useCallback(async () => {
-    if (!user && !authLoading) {
-      setIsLoadingHunts(false);
-      return;
+    const [hunts, setHunts] = useState<TreasureHunt[]>([]);
+    const [isLoadingHunts, setIsLoadingHunts] = useState(true);
+    const [fetchError, setFetchError] = useState<string | null>(null);
+
+    // Functional logic from your existing SolveHuntPage.tsx
+    const loadHuntsData = useCallback(async () => {
+        if (authLoading) return;
+        if (!user) {
+            setIsLoadingHunts(false);
+            setHunts([]);
+            return;
+        }
+        setIsLoadingHunts(true); setFetchError(null);
+        try {
+            const fetchedHunts = await fetchPublicHuntsForListing();
+            setHunts(fetchedHunts || []);
+        } catch (err: any) {
+            console.error('Error loading hunts:', err);
+            setFetchError(err.message || 'Failed to load expeditions.');
+        } finally {
+            setIsLoadingHunts(false);
+        }
+    }, [user, authLoading]);
+
+    useEffect(() => { loadHuntsData(); }, [loadHuntsData]);
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4 text-black">
+                <Compass size={64} className="animate-spin mb-4 text-blue-600" />
+                <h1 className="text-3xl font-bold mb-2">Verifying Identity...</h1>
+                <Loader />
+            </div>
+        );
     }
-    if (!user) return;
-    setIsLoadingHunts(true);
-    setFetchError(null);
-    try {
-      const fetchedHunts = await fetchHunts();
-      setHunts(fetchedHunts || []);
-    } catch (err) {
-      console.error('Error loading hunts:', err);
-      const defaultMessage = 'An unexpected error occurred. Please try again.';
-      setFetchError(
-        err instanceof Error
-          ? err.message.includes('Failed to fetch')
-            ? 'Network error. Check connection.'
-            : err.message
-          : defaultMessage
-      );
-    } finally {
-      setIsLoadingHunts(false);
-    }
-  }, [user, authLoading]);
+    if (!user) { return <Navigate to="/" replace />; } // Or your login page
 
-  useEffect(() => {
-    loadHuntsData();
-  }, [loadHuntsData]);
+    // --- UI Structure from SolveHuntPage_reference.tsx with your functionality & new theme ---
+    return (
+        <div className="min-h-screen bg-white text-black"> {/* Main page background */}
+            {/* Header section from reference, adapted with new theme */}
+            <div className="py-12 bg-gradient-to-r from-blue-500 to-blue-600"> {/* Adjusted gradient to use blue-600 */}
+                <div className="container mx-auto px-4 text-center">
+                    <Compass size={48} className="mx-auto mb-4 text-white" />
+                    <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">Uncharted Adventures</h1>
+                    <p className="text-lg md:text-xl text-blue-100 mt-3 max-w-2xl mx-auto">
+                        Ancient maps whisper of untold riches. Select a hunt and etch your name in legend!
+                    </p>
+                </div>
+            </div>
 
-  // --- Loading, Auth, Selected Hunt States (condensed from previous full versions) ---
-  if (authLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader message="Verifying pass..." size="lg" />
-      </div>
-    );
-  }
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  if (selectedHunt) {
-    return (
-      <div className="min-h-screen bg-slate-50 py-8 px-4">
-        <div className="container mx-auto">
-          <Button
-            variant="outline"
-            size="md"
-            onClick={() => setSelectedHunt(null)}
-            className="mb-8 group"
-            icon={
-              <ArrowLeft className="group-hover:-translate-x-1 transition-transform" />
-            }
-          >
-            Return to Map
-          </Button>
-          <Card className="shadow-xl bg-white overflow-hidden">
-            <CardContent className="p-0">
-              <HuntSolver hunt={selectedHunt} />
-            </CardContent>
-          </Card>
+            {/* Content area */}
+            <div className="container mx-auto px-4 py-10">
+                {isLoadingHunts ? (
+                    <div className="flex justify-center items-center py-20">
+                        <Loader />
+                        <p className="ml-3 text-black">Discovering new quests...</p>
+                    </div>
+                ) : fetchError ? (
+                    <Card className="max-w-lg mx-auto my-10 bg-white text-center shadow-xl border border-red-300">
+                        <CardHeader>
+                            <AlertTriangle size={48} className="mx-auto text-red-500 mb-3"/>
+                            <CardTitle className="text-red-600">Network Error</CardTitle>
+                        </CardHeader>
+                        <CardContent><p className="text-black">{fetchError}</p></CardContent>
+                        <CardFooter>
+                            <Button variant="danger" onClick={loadHuntsData} icon={<Compass />}>
+                                Retry Connection
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                ) : hunts.length === 0 ? (
+                    <div className="text-center py-20">
+                        <SearchSlash size={64} className="mx-auto text-gray-400 mb-6" /> {/* Softer icon color */}
+                        <h2 className="text-2xl font-bold text-black mb-3">The Archives are Bare</h2>
+                        <p className="text-gray-700 mt-2 mb-6 max-w-md mx-auto"> {/* Softer text color */}
+                            No adventures are currently chronicled. Perhaps you're the scribe we've been waiting for?
+                        </p>
+                        <Button
+                            variant="primary"
+                            size="lg"
+                            onClick={() => navigate('/create')}
+                            icon={<Edit />}
+                            className="bg-blue-600 hover:bg-blue-700 text-white" // Explicit theme
+                        >
+                            Scribe a New Chronicle
+                        </Button>
+                    </div>
+                ) : (
+                    // Grid layout for hunt cards, from reference
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {hunts.map(hunt => (
+                            <Card key={hunt.id} className="bg-white shadow-xl rounded-lg overflow-hidden flex flex-col transition-all hover:shadow-2xl border border-gray-200">
+                                {hunt.cover_image_url && (
+                                    <div className="aspect-video w-full overflow-hidden"> {/* Consistent aspect ratio */}
+                                        <img src={hunt.cover_image_url} alt={hunt.title} className="w-full h-full object-cover"/>
+                                    </div>
+                                )}
+                                <CardHeader className="p-5 border-b border-gray-200">
+                                    <CardTitle className="text-xl font-semibold text-black line-clamp-2">{hunt.title}</CardTitle>
+                                    {/* Using ExpandableText for description from reference */}
+                                    {hunt.description && (
+                                        <ExpandableText
+                                            text={hunt.description}
+                                            initialLineClamp={2} // Reference uses 2
+                                            className="mt-1.5"
+                                            textClassName="text-sm text-gray-700 leading-relaxed" // Softer black
+                                            buttonClassName="text-blue-600 hover:underline text-xs"
+                                        />
+                                    )}
+                                </CardHeader>
+
+                                {/* Content section styled like reference */}
+                                <CardContent className="p-5 flex-grow space-y-3">
+                                    {hunt.story_context && ( // Story context block from reference
+                                        <div className="flex items-start text-sm text-gray-700">
+                                            <Feather size={18} className="mr-2.5 mt-0.5 text-blue-600 flex-shrink-0" />
+                                            <blockquote className="italic border-l-2 border-blue-500 pl-3 py-1">
+                                                <ExpandableText text={hunt.story_context} initialLineClamp={3} textClassName="text-xs" buttonClassName="text-blue-600 text-xs"/>
+                                            </blockquote>
+                                        </div>
+                                    )}
+                                    <div className="text-xs text-gray-600 space-y-1.5"> {/* Metadata items wrapper */}
+                                        <p className="flex items-center">
+                                            <PuzzleIcon size={14} className="mr-2 text-blue-600"/>
+                                            <span className="font-medium text-black">{hunt.puzzles_count !== undefined ? hunt.puzzles_count : 'Interactive'}</span>
+                                            {hunt.puzzles_count === 1 ? " Enigma" : " Enigmas"} {/* Adapted for new system */}
+                                        </p>
+                                        <p className="flex items-center">
+                                            <CalendarDays size={14} className="mr-2 text-blue-600"/>
+                                            <span className="text-black">Chronicled:</span> {new Date(hunt.created_at).toLocaleDateString()}
+                                        </p>
+                                        <p className="flex items-center">
+                                            <UserIcon size={14} className="mr-2 text-blue-600"/>
+                                            <span className="text-black">By:</span> {hunt.creator?.display_name || 'Mysterious Chronicler'}
+                                        </p>
+                                        {/* Displaying difficulty if available, similar to reference items */}
+                                        {hunt.difficulty && (
+                                            <p className="flex items-center">
+                                                <LockKeyhole size={14} className="mr-2 text-blue-600" />
+                                                <span className="text-black">Difficulty:</span> <span className="capitalize ml-1">{hunt.difficulty}</span>
+                                            </p>
+                                        )}
+                                    </div>
+                                </CardContent>
+
+                                <CardFooter className="p-5 bg-gray-50 border-t border-gray-200"> {/* Footer bg for slight separation */}
+                                    {/* Button logic from your functional SolveHuntPage.tsx */}
+                                    {hunt.starting_node_id ? (
+                                        <RouterLink to={`/play/${hunt.id}`} className="w-full">
+                                            <Button
+                                                variant="primary"
+                                                fullWidth
+                                                icon={<PlayCircle size={18} />}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white" // Explicit theme
+                                            >
+                                                Begin This Quest
+                                            </Button>
+                                        </RouterLink>
+                                    ) : (
+                                        <Button variant="outline" fullWidth disabled className="border-gray-300 text-gray-500">
+                                            Quest Story Incomplete
+                                        </Button>
+                                    )}
+                                </CardFooter>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
-      </div>
     );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-100 to-indigo-100 py-12 font-sans">
-      <div className="container mx-auto px-4 md:px-6 lg:px-8">
-        <header className="mb-16 text-center">
-          {/* ... header content from previous ... */}
-          <Compass className="mx-auto h-20 w-20 text-blue-600 mb-6 transform transition-transform duration-500 hover:rotate-12" />
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 font-serif tracking-tight">
-            Uncharted Adventures
-          </h1>
-          <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">
-            Ancient maps whisper of untold riches. Select a hunt and etch your
-            name in legend!
-          </p>
-        </header>
-
-        {isLoadingHunts ? (
-          /* ... Loader ... */ <div className="flex justify-center items-center h-64 pt-10">
-            <Loader message="Consulting the cartographers..." size="lg" />
-          </div>
-        ) : fetchError ? (
-          /* ... Error Card ... */ <Card className="w-full max-w-lg mx-auto text-center shadow-2xl bg-white border-2 border-red-200 p-6">
-            <CardHeader className="border-none pb-2">
-              <AlertTriangle size={56} className="mx-auto text-red-500 mb-4" />
-              <CardTitle className="text-2xl font-bold text-red-700 font-serif">
-                Lost at Sea!
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-700 mb-8 text-base">{fetchError}</p>
-            </CardContent>
-            <CardFooter className="flex justify-center pt-2 border-none">
-              <Button
-                variant="danger"
-                onClick={loadHuntsData}
-                icon={<Compass />}
-                isLoading={isLoadingHunts}
-                size="lg"
-              >
-                Try Navigating Again
-              </Button>
-            </CardFooter>
-          </Card>
-        ) : hunts.length === 0 ? (
-          /* ... No Hunts Card ... */ <div className="text-center py-20 bg-white rounded-xl shadow-2xl p-10">
-            <SearchSlash size={72} className="mx-auto text-slate-400 mb-8" />
-            <p className="text-3xl font-bold text-slate-700 font-serif mb-3">
-              The Archives are Bare!
-            </p>
-            <p className="text-slate-500 mt-2 mb-8 max-w-md mx-auto">
-              No adventures are currently chronicled. Perhaps you're the scribe
-              we've been waiting for?
-            </p>
-            <Button
-              variant="secondary"
-              onClick={() => navigate('/create')}
-              icon={<Feather />}
-              size="lg"
-            >
-              Scribe a New Chronicle
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up">
-            {hunts.map((hunt) => (
-              <Card
-                key={hunt.id}
-                className="flex flex-col bg-white overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transform transition-all duration-300 ease-out hover:-translate-y-2 group border border-slate-200 hover:border-blue-500"
-                // No min-height on the card itself, let content dictate height more naturally
-              >
-                <CardHeader className="border-b border-slate-200 p-5">
-                  <CardTitle className="text-xl lg:text-2xl font-bold text-blue-700 group-hover:text-blue-800 transition-colors font-serif !leading-tight tracking-tight mb-1.5 line-clamp-2">
-                    {hunt.title}
-                  </CardTitle>
-                  {hunt.description && (
-                    <CardDescription className="text-sm text-slate-600 line-clamp-3 leading-relaxed">
-                      {hunt.description}
-                    </CardDescription>
-                  )}
-                </CardHeader>
-
-                <CardContent className="p-5 space-y-4 text-sm flex-grow">
-                  {' '}
-                  {/* flex-grow is important */}
-                  {hunt.story_context && (
-                    <div className="relative group/story">
-                      {/* Icon moved to be purely decorative next to the blockquote */}
-                      <BookOpen
-                        size={20}
-                        className="absolute -top-1 -left-2.5 text-amber-400 opacity-50 transform -rotate-12 group-hover/story:text-amber-500 transition-all duration-300 group-hover/story:scale-105 z-0"
-                      />
-                      <blockquote className="text-slate-700 bg-amber-50/70 border-l-4 border-amber-500 rounded-md italic shadow-sm hover:shadow-md transition-shadow duration-300 pl-5 pr-3 py-3 relative z-10">
-                        <ExpandableText
-                          text={`"${hunt.story_context}"`} // Add quotes around the story
-                          initialLineClamp={3} // Show 3 lines initially for story context
-                          textClassName="text-sm leading-relaxed text-left" // Consistent text styling
-                          buttonClassName="text-blue-600 hover:text-blue-700 text-xs"
-                        />
-                      </blockquote>
-                    </div>
-                  )}
-                  <div
-                    className={`grid grid-cols-2 gap-x-4 gap-y-3 text-xs text-slate-600 ${
-                      hunt.story_context ? 'pt-3' : 'pt-0'
-                    }`}
-                  >
-                    <div
-                      className="flex items-center"
-                      title={`${
-                        hunt.puzzles_count || hunt.puzzles?.length || 0
-                      } Puzzles`}
-                    >
-                      <Puzzle
-                        size={16}
-                        className="mr-2 text-blue-500 flex-shrink-0"
-                      />
-                      <span className="font-medium text-slate-700">
-                        {hunt.puzzles_count || hunt.puzzles?.length || 0}{' '}
-                        {(hunt.puzzles_count || hunt.puzzles?.length) === 1
-                          ? 'Enigma'
-                          : 'Enigmas'}
-                      </span>
-                    </div>
-                    <div
-                      className="flex items-center"
-                      title={`Chronicled on ${new Date(
-                        hunt.created_at
-                      ).toLocaleDateString()}`}
-                    >
-                      <CalendarDays
-                        size={16}
-                        className="mr-2 text-blue-500 flex-shrink-0"
-                      />
-                      <span className="font-medium text-slate-700">
-                        {new Date(hunt.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div
-                      className="flex items-center col-span-2"
-                      title={`Authored by ${
-                        hunt.creator?.display_name || 'A Mysterious Chronicler'
-                      }`}
-                    >
-                      <Edit
-                        size={16}
-                        className="mr-2 text-blue-500 flex-shrink-0"
-                      />
-                      <span>
-                        By:{' '}
-                        <span className="font-semibold text-slate-800">
-                          {hunt.creator?.display_name ||
-                            'Mysterious Chronicler'}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-
-                <CardFooter className="mt-auto border-t border-slate-200 p-5 bg-slate-50 group-hover:bg-slate-100 transition-colors">
-                  <Button
-                    variant="primary"
-                    onClick={() => setSelectedHunt(hunt)}
-                    className="w-full"
-                    icon={<LockKeyhole />}
-                    size="md"
-                  >
-                    Begin This Quest
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
 };
 
 export default SolveHuntPage;

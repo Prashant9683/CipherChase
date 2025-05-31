@@ -1,45 +1,60 @@
-// src/components/ui/Select.tsx
 import React from 'react';
 
 interface SelectOption {
-  value: string | number;
-  label: string;
+    value: string;
+    label: string;
 }
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  options: SelectOption[];
-  className?: string;
-  placeholder?: string;
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
+    options: SelectOption[];
+    onValueChange?: (value: string) => void;
+    onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    placeholder?: string;
+    className?: string;
 }
 
-export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, options, placeholder, ...props }, ref) => {
+const Select: React.FC<SelectProps> = ({
+                                           options,
+                                           onValueChange,
+                                           onChange,
+                                           placeholder,
+                                           className = '',
+                                           value,
+                                           ...props
+                                       }) => {
+    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedValue = e.target.value;
+
+        // Call the custom onValueChange callback if provided
+        if (onValueChange) {
+            onValueChange(selectedValue);
+        }
+
+        // Call the standard onChange callback if provided
+        if (onChange) {
+            onChange(e);
+        }
+    };
+
     return (
-      <select
-        className={`flex h-10 w-full rounded-md border border-white-300 bg-white px-3 py-2 text-sm 
-                    text-white-800 placeholder:text-white-400 
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                    disabled:cursor-not-allowed disabled:opacity-50 
-                    dark:border-white-700 dark:bg-white-800 dark:text-white-50 dark:placeholder:text-white-500 dark:focus:ring-blue-600 dark:focus:border-blue-600
-                    transition-colors duration-150 ease-in-out shadow-sm hover:border-white-400 dark:hover:border-white-600
-                    ${className}`}
-        ref={ref}
-        {...props}
-      >
-        {placeholder && (
-          <option value="" disabled>
-            {placeholder}
-          </option>
-        )}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        <select
+            value={value || ''}
+            onChange={handleChange}
+            className={`border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${className}`}
+            {...props}
+        >
+            {placeholder && (
+                <option value="" disabled>
+                    {placeholder}
+                </option>
+            )}
+            {options.map((option) => (
+                <option key={option.value} value={option.value}>
+                    {option.label}
+                </option>
+            ))}
+        </select>
     );
-  }
-);
-Select.displayName = 'Select';
+};
 
 export default Select;

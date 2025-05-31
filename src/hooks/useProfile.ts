@@ -27,16 +27,15 @@ export const useProfile = (userId?: string) => {
 
       try {
         const { data, error: supabaseError } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', targetUserId)
-          .single(); // Using .single() implies a profile MUST exist.
+            .from('user_profiles')
+            .select('*')
+            .eq('id', targetUserId)
+            .single(); // Using .single() implies a profile MUST exist.
         // Consider .maybeSingle() if a user might not have a profile entry yet.
 
         if (supabaseError) {
           // Handle cases where .single() fails (e.g., no profile found - PGRST116, or other DB errors)
-          if (supabaseError.code === 'PGRST116') {
-            // No row found
+          if (supabaseError.code === 'PGRST116') { // No row found
             setError('Profile not found for this user.');
             setProfile(null);
           } else {
@@ -64,6 +63,7 @@ export const useProfile = (userId?: string) => {
       setProfile(null);
       setError(null); // Or "User not authenticated"
     }
+
   }, [userId, authUser]); // Depend on authUser as a whole object or authUser?.id
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
@@ -75,11 +75,11 @@ export const useProfile = (userId?: string) => {
     setLoading(true);
     try {
       const { data, error: supabaseError } = await supabase
-        .from('user_profiles')
-        .update(updates)
-        .eq('id', authUser.id) // Use authUser.id
-        .select()
-        .single();
+          .from('user_profiles')
+          .update(updates)
+          .eq('id', authUser.id) // Use authUser.id
+          .select()
+          .single();
 
       if (supabaseError) throw supabaseError;
       setProfile(data as UserProfile);
@@ -89,10 +89,7 @@ export const useProfile = (userId?: string) => {
       console.error('Error updating profile:', err);
       setError(err instanceof Error ? err.message : 'Failed to update profile');
       setLoading(false);
-      return {
-        success: false,
-        error: err instanceof Error ? err : new Error(String(err)),
-      };
+      return { success: false, error: err instanceof Error ? err : new Error(String(err)) };
     }
   };
 
